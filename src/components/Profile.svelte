@@ -4,15 +4,10 @@
 	export let kingstonDetails;
 
 	export let user;
-	const { displayName, photoURL } = { ...user };
-
-	const clearSelectedGeohash = () => {
-		selectedGeohash = null;
-	};
+	const { displayName } = { ...user };
 </script>
 
 <section class="rounded-lg shadow-xl text-sm p-4">
-	<img height="100" width="auto" src={`${photoURL}`} alt={`${photoURL}`} class="card card-xsm md:card-md rounded-lg" loading="lazy" />
 	<p class="font-bold my-1">User:</p>
 	<p>{displayName}</p>
 	<p class="font-bold my-1">City:</p>

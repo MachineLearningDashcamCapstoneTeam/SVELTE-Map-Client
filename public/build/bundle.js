@@ -24,14 +24,6 @@ var app = (function () {
     function safe_not_equal(a, b) {
         return a != a ? b == b : a !== b || ((a && typeof a === 'object') || typeof a === 'function');
     }
-    let src_url_equal_anchor;
-    function src_url_equal(element_src, url) {
-        if (!src_url_equal_anchor) {
-            src_url_equal_anchor = document.createElement('a');
-        }
-        src_url_equal_anchor.href = url;
-        return element_src === src_url_equal_anchor.href;
-    }
     function is_empty(obj) {
         return Object.keys(obj).length === 0;
     }
@@ -37972,7 +37964,7 @@ var app = (function () {
     			div = element("div");
     			attr_dev(div, "id", "map");
     			attr_dev(div, "class", "h-96 md:h-full rounded-lg shadow-xl");
-    			add_location(div, file$6, 263, 0, 8368);
+    			add_location(div, file$6, 250, 0, 7893);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -38012,51 +38004,6 @@ var app = (function () {
     	let map;
     	const small_popup = new mapboxgl.Popup();
 
-    	const getDataFromFirestore = async () => {
-    		try {
-    			const potholeDataList = getListOfObjectWhereKeyContainsString(collectionList, "layerName", "PotholeLayer");
-
-    			if (potholeDataList.length <= 0) {
-    				let tempList = collectionList;
-    				const tempListLength = tempList.length;
-    				const potholeRef = db.collection("users").doc(user.uid).collection("potholes").orderBy("date_time_analyzed");
-
-    				const sub = collectionData(potholeRef, { idField: "id" }).subscribe(potholeCollections => {
-    					const potholeDataLength = tempListLength + potholeCollections.length;
-
-    					for (let i = tempListLength; i < potholeDataLength; i += 1) {
-    						let tempDate = potholeCollections[i - tempListLength]['date_time_analyzed'];
-    						tempDate = convertDateTimeToString(tempDate);
-    						const potholeLayerName = `PotholeLayer ${tempDate}`;
-    						const potholeSourceName = `PotholeSource${tempDate}`;
-    						const potholeData = potholeCollections[i - tempListLength];
-
-    						tempList.push({
-    							id: i,
-    							icon: "fa-border-all",
-    							type: "Polygon",
-    							isShown: true,
-    							name: potholeLayerName,
-    							layerName: potholeLayerName,
-    							sourceName: potholeSourceName,
-    							data: potholeData
-    						});
-    					}
-
-    					// Unsubscribe from stream
-    					sub.unsubscribe();
-
-    					$$invalidate(0, collectionList = tempList);
-    					addDataSources();
-    				});
-    			} else {
-    				addDataSources();
-    			}
-    		} catch(e) {
-    			console.log(e);
-    		}
-    	};
-
     	const fetchInitialMapData = async () => {
     		try {
     			let tempList = [];
@@ -38081,9 +38028,35 @@ var app = (function () {
     				sourceName: "sky"
     			});
 
+    			const docRef = Ic(db, "users", user.uid);
+    			const colRef = Ch(yc(docRef, "potholes"), Mh("date_time_analyzed", "desc"));
+    			const querySnapshot = await rl(colRef);
+
+    			querySnapshot.forEach(doc => {
+    				// doc.data() is never undefined for query doc snapshots
+    				// console.log(doc.id, " => ", doc.data());
+    				let tempDate = doc.data()["date_time_analyzed"];
+
+    				tempDate = convertDateTimeToString(tempDate);
+    				const potholeLayerName = `PotholeLayer ${tempDate}`;
+    				const potholeSourceName = `PotholeSource${tempDate}`;
+    				const potholeData = doc.data();
+
+    				tempList.push({
+    					id: doc.id,
+    					icon: "fa-border-all",
+    					type: "Polygon",
+    					isShown: true,
+    					name: potholeLayerName,
+    					layerName: potholeLayerName,
+    					sourceName: potholeSourceName,
+    					data: potholeData
+    				});
+    			});
+
     			$$invalidate(0, collectionList = tempList);
     		} catch(e) {
-    			
+    			console.log(e);
     		}
     	};
 
@@ -38271,7 +38244,7 @@ var app = (function () {
     		map.addControl(new mapboxgl.NavigationControl(), "bottom-right");
 
     		map.on("style.load", function () {
-    			getDataFromFirestore();
+    			addDataSources();
     			addFilter();
     		});
     	});
@@ -38320,6 +38293,11 @@ var app = (function () {
     		convertDateTimeToString,
     		db,
     		collectionData,
+    		collection: yc,
+    		query: Ch,
+    		orderBy: Mh,
+    		doc: Ic,
+    		getDocs: rl,
     		user,
     		collectionList,
     		selectedGeohash,
@@ -38329,7 +38307,6 @@ var app = (function () {
     		isDataLoaded,
     		map,
     		small_popup,
-    		getDataFromFirestore,
     		fetchInitialMapData,
     		addDataSources,
     		addLayers,
@@ -38586,25 +38563,22 @@ var app = (function () {
 
     function create_fragment$5(ctx) {
     	let section;
-    	let img;
-    	let img_src_value;
-    	let t0;
     	let p0;
-    	let t2;
+    	let t1;
     	let p1;
-    	let t4;
+    	let t3;
     	let p2;
-    	let t6;
+    	let t5;
     	let p3;
-    	let t7_value = /*kingstonDetails*/ ctx[0].displayName + "";
+    	let t6_value = /*kingstonDetails*/ ctx[0].displayName + "";
+    	let t6;
     	let t7;
-    	let t8;
     	let p4;
-    	let t10;
+    	let t9;
     	let p5;
-    	let t13;
+    	let t12;
     	let p6;
-    	let t15;
+    	let t14;
     	let button;
     	let mounted;
     	let dispose;
@@ -38612,85 +38586,74 @@ var app = (function () {
     	const block = {
     		c: function create() {
     			section = element("section");
-    			img = element("img");
-    			t0 = space();
     			p0 = element("p");
     			p0.textContent = "User:";
-    			t2 = space();
+    			t1 = space();
     			p1 = element("p");
     			p1.textContent = `${/*displayName*/ ctx[1]}`;
-    			t4 = space();
+    			t3 = space();
     			p2 = element("p");
     			p2.textContent = "City:";
-    			t6 = space();
+    			t5 = space();
     			p3 = element("p");
-    			t7 = text(t7_value);
-    			t8 = space();
+    			t6 = text(t6_value);
+    			t7 = space();
     			p4 = element("p");
     			p4.textContent = "Map Data:";
-    			t10 = space();
+    			t9 = space();
     			p5 = element("p");
     			p5.textContent = `Data taken from API on ${getCurrentDateTime()}`;
-    			t13 = space();
+    			t12 = space();
     			p6 = element("p");
     			p6.textContent = "Details:";
-    			t15 = space();
+    			t14 = space();
     			button = element("button");
     			button.textContent = "Logout";
-    			attr_dev(img, "height", "100");
-    			attr_dev(img, "width", "auto");
-    			if (!src_url_equal(img.src, img_src_value = `${/*photoURL*/ ctx[2]}`)) attr_dev(img, "src", img_src_value);
-    			attr_dev(img, "alt", `${/*photoURL*/ ctx[2]}`);
-    			attr_dev(img, "class", "card card-xsm md:card-md rounded-lg");
-    			attr_dev(img, "loading", "lazy");
-    			add_location(img, file$4, 14, 1, 360);
     			attr_dev(p0, "class", "font-bold my-1");
-    			add_location(p0, file$4, 15, 1, 495);
-    			add_location(p1, file$4, 16, 1, 533);
+    			add_location(p0, file$4, 10, 1, 277);
+    			add_location(p1, file$4, 11, 1, 315);
     			attr_dev(p2, "class", "font-bold my-1");
-    			add_location(p2, file$4, 17, 1, 556);
-    			add_location(p3, file$4, 18, 1, 594);
+    			add_location(p2, file$4, 12, 1, 338);
+    			add_location(p3, file$4, 13, 1, 376);
     			attr_dev(p4, "class", "font-bold my-1");
-    			add_location(p4, file$4, 20, 1, 635);
-    			add_location(p5, file$4, 21, 1, 677);
+    			add_location(p4, file$4, 15, 1, 417);
+    			add_location(p5, file$4, 16, 1, 459);
     			attr_dev(p6, "class", "font-bold my-1");
-    			add_location(p6, file$4, 23, 1, 734);
+    			add_location(p6, file$4, 18, 1, 516);
     			attr_dev(button, "class", "card-btn w-full block card-btn-red rounded-lg");
-    			add_location(button, file$4, 24, 1, 775);
+    			add_location(button, file$4, 19, 1, 557);
     			attr_dev(section, "class", "rounded-lg shadow-xl text-sm p-4");
-    			add_location(section, file$4, 13, 0, 307);
+    			add_location(section, file$4, 9, 0, 224);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, section, anchor);
-    			append_dev(section, img);
-    			append_dev(section, t0);
     			append_dev(section, p0);
-    			append_dev(section, t2);
+    			append_dev(section, t1);
     			append_dev(section, p1);
-    			append_dev(section, t4);
+    			append_dev(section, t3);
     			append_dev(section, p2);
-    			append_dev(section, t6);
+    			append_dev(section, t5);
     			append_dev(section, p3);
-    			append_dev(p3, t7);
-    			append_dev(section, t8);
+    			append_dev(p3, t6);
+    			append_dev(section, t7);
     			append_dev(section, p4);
-    			append_dev(section, t10);
+    			append_dev(section, t9);
     			append_dev(section, p5);
-    			append_dev(section, t13);
+    			append_dev(section, t12);
     			append_dev(section, p6);
-    			append_dev(section, t15);
+    			append_dev(section, t14);
     			append_dev(section, button);
 
     			if (!mounted) {
-    				dispose = listen_dev(button, "click", /*click_handler*/ ctx[4], false, false, false);
+    				dispose = listen_dev(button, "click", /*click_handler*/ ctx[3], false, false, false);
     				mounted = true;
     			}
     		},
     		p: function update(ctx, [dirty]) {
-    			if (dirty & /*kingstonDetails*/ 1 && t7_value !== (t7_value = /*kingstonDetails*/ ctx[0].displayName + "")) set_data_dev(t7, t7_value);
+    			if (dirty & /*kingstonDetails*/ 1 && t6_value !== (t6_value = /*kingstonDetails*/ ctx[0].displayName + "")) set_data_dev(t6, t6_value);
     		},
     		i: noop$2,
     		o: noop$2,
@@ -38717,12 +38680,7 @@ var app = (function () {
     	validate_slots('Profile', slots, []);
     	let { kingstonDetails } = $$props;
     	let { user } = $$props;
-    	const { displayName, photoURL } = { ...user };
-
-    	const clearSelectedGeohash = () => {
-    		selectedGeohash = null;
-    	};
-
+    	const { displayName } = { ...user };
     	const writable_props = ['kingstonDetails', 'user'];
 
     	Object.keys($$props).forEach(key => {
@@ -38733,7 +38691,7 @@ var app = (function () {
 
     	$$self.$$set = $$props => {
     		if ('kingstonDetails' in $$props) $$invalidate(0, kingstonDetails = $$props.kingstonDetails);
-    		if ('user' in $$props) $$invalidate(3, user = $$props.user);
+    		if ('user' in $$props) $$invalidate(2, user = $$props.user);
     	};
 
     	$$self.$capture_state = () => ({
@@ -38742,27 +38700,25 @@ var app = (function () {
     		getCurrentDateTime,
     		kingstonDetails,
     		user,
-    		displayName,
-    		photoURL,
-    		clearSelectedGeohash
+    		displayName
     	});
 
     	$$self.$inject_state = $$props => {
     		if ('kingstonDetails' in $$props) $$invalidate(0, kingstonDetails = $$props.kingstonDetails);
-    		if ('user' in $$props) $$invalidate(3, user = $$props.user);
+    		if ('user' in $$props) $$invalidate(2, user = $$props.user);
     	};
 
     	if ($$props && "$$inject" in $$props) {
     		$$self.$inject_state($$props.$$inject);
     	}
 
-    	return [kingstonDetails, displayName, photoURL, user, click_handler];
+    	return [kingstonDetails, displayName, user, click_handler];
     }
 
     class Profile extends SvelteComponentDev {
     	constructor(options) {
     		super(options);
-    		init(this, options, instance$5, create_fragment$5, safe_not_equal, { kingstonDetails: 0, user: 3 });
+    		init(this, options, instance$5, create_fragment$5, safe_not_equal, { kingstonDetails: 0, user: 2 });
 
     		dispatch_dev("SvelteRegisterComponent", {
     			component: this,
@@ -38778,7 +38734,7 @@ var app = (function () {
     			console.warn("<Profile> was created without expected prop 'kingstonDetails'");
     		}
 
-    		if (/*user*/ ctx[3] === undefined && !('user' in props)) {
+    		if (/*user*/ ctx[2] === undefined && !('user' in props)) {
     			console.warn("<Profile> was created without expected prop 'user'");
     		}
     	}

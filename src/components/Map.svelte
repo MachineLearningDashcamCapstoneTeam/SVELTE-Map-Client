@@ -4,9 +4,10 @@
 	import { getDataWithAxios } from "utils/fetch-data.js";
 	import { Data } from "constants/index.js";
 	import { getListOfObjectWhereKeyContainsString } from "utils/filter-data.js";
-	import  {convertDateTimeToString } from 'utils/date-time-converter'
+	import { convertDateTimeToString } from "utils/date-time-converter";
 	import { db } from "db/firebase.js";
 	import { collectionData } from "rxfire/firestore";
+	import { collection, query, orderBy, doc, getDocs } from "firebase/firestore";
 
 	// User ID passed from parent
 	export let user;
@@ -19,59 +20,45 @@
 	let map;
 	const small_popup = new mapboxgl.Popup();
 
-	const getDataFromFirestore = async () => {
-		try {
-
-			const potholeDataList = getListOfObjectWhereKeyContainsString(collectionList, "layerName", "PotholeLayer");
-			if(potholeDataList.length <= 0){
-				let tempList = collectionList;
-			const tempListLength = tempList.length;
-			const potholeRef = db.collection("users").doc(user.uid).collection("potholes").orderBy("date_time_analyzed");
-
-			const sub = collectionData(potholeRef, { idField: "id" }).subscribe((potholeCollections) => {
-				const potholeDataLength = tempListLength + potholeCollections.length;
-				for (let i = tempListLength; i < potholeDataLength; i += 1) {
-					let tempDate = potholeCollections[i - tempListLength]['date_time_analyzed']
-         			tempDate = convertDateTimeToString(tempDate)
-
-					const potholeLayerName = `PotholeLayer ${tempDate}`;
-					const potholeSourceName = `PotholeSource${tempDate}`;
-					const potholeData = potholeCollections[i - tempListLength];
-
-					tempList.push({
-						id: i,
-						icon: "fa-border-all",
-						type: "Polygon",
-						isShown: true,
-						name: potholeLayerName,
-						layerName: potholeLayerName,
-						sourceName: potholeSourceName,
-						data: potholeData,
-					});
-				}
-				// Unsubscribe from stream
-				sub.unsubscribe();
-				collectionList = tempList;
-				addDataSources();
-			});
-			}
-			else{
-				addDataSources();
-			}
-		
-		} catch (e) {
-			console.log(e);
-		}
-	};
-
 	const fetchInitialMapData = async () => {
 		try {
 			let tempList = [];
 
 			tempList.push({ id: 0, icon: "fa-building", type: "Polygon", isShown: true, name: "Buildings", layerName: "add-3d-buildings", sourceName: "building" });
 			tempList.push({ id: 1, icon: "fa-cloud", type: "Polygon", isShown: true, name: "Sky Box", layerName: "sky", sourceName: "sky" });
+
+			const docRef = doc(db, "users", user.uid);
+			const colRef = query(collection(docRef, "potholes"), orderBy("date_time_analyzed", "desc"));
+			const querySnapshot = await getDocs(colRef);
+			querySnapshot.forEach((doc) => {
+				// doc.data() is never undefined for query doc snapshots
+				// console.log(doc.id, " => ", doc.data());
+
+				let tempDate = doc.data()["date_time_analyzed"];
+				tempDate = convertDateTimeToString(tempDate);
+
+				const potholeLayerName = `PotholeLayer ${tempDate}`;
+				const potholeSourceName = `PotholeSource${tempDate}`;
+				const potholeData = doc.data();
+
+				tempList.push({
+					id: doc.id,
+					icon: "fa-border-all",
+					type: "Polygon",
+					isShown: true,
+					name: potholeLayerName,
+					layerName: potholeLayerName,
+					sourceName: potholeSourceName,
+					data: potholeData,
+				});
+			});
+
 			collectionList = tempList;
-		} catch (e) {}
+
+		
+		} catch (e) {
+			console.log(e);
+		}
 	};
 
 	const addDataSources = () => {
@@ -245,7 +232,7 @@
 		map.addControl(new mapboxgl.NavigationControl(), "bottom-right");
 
 		map.on("style.load", function () {
-			getDataFromFirestore();
+			addDataSources();
 			addFilter();
 		});
 	});
