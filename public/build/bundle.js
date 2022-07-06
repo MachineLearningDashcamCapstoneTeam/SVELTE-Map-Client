@@ -39817,29 +39817,34 @@ var app = (function () {
 
     // (76:0) {:else}
     function create_else_block(ctx) {
-    	let section;
+    	let section1;
     	let div;
+    	let section0;
     	let button;
     	let mounted;
     	let dispose;
 
     	const block = {
     		c: function create() {
-    			section = element("section");
+    			section1 = element("section");
     			div = element("div");
+    			section0 = element("section");
     			button = element("button");
     			button.textContent = "Signin with Google";
-    			attr_dev(button, "class", "card-btn card-btn-blue rounded-lg");
-    			add_location(button, file, 80, 3, 2429);
+    			attr_dev(button, "class", "card-btn card-btn-blue rounded-lg block w-full");
+    			add_location(button, file, 79, 3, 2484);
+    			attr_dev(section0, "class", "h-full rounded-lg shadow-xl p-4 text-sm");
+    			add_location(section0, file, 78, 2, 2422);
     			attr_dev(div, "class", "col-span-1 md:col-span-3 row-span-1");
-    			add_location(div, file, 79, 2, 2375);
-    			attr_dev(section, "class", "grid grid-cols-1 md:grid-cols-12 grid-rows-6 gap-4 py-4 px-4 h-fit");
-    			add_location(section, file, 77, 0, 2282);
+    			add_location(div, file, 77, 1, 2369);
+    			attr_dev(section1, "class", "grid grid-cols-1 md:grid-cols-12 grid-rows-6 gap-4 py-4 px-4 h-fit");
+    			add_location(section1, file, 76, 0, 2280);
     		},
     		m: function mount(target, anchor) {
-    			insert_dev(target, section, anchor);
-    			append_dev(section, div);
-    			append_dev(div, button);
+    			insert_dev(target, section1, anchor);
+    			append_dev(section1, div);
+    			append_dev(div, section0);
+    			append_dev(section0, button);
 
     			if (!mounted) {
     				dispose = listen_dev(button, "click", /*login*/ ctx[7], false, false, false);
@@ -39850,7 +39855,7 @@ var app = (function () {
     		i: noop$2,
     		o: noop$2,
     		d: function destroy(detaching) {
-    			if (detaching) detach_dev(section);
+    			if (detaching) detach_dev(section1);
     			mounted = false;
     			dispose();
     		}
